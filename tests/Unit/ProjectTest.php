@@ -2,10 +2,19 @@
 
 namespace Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use App\Models\Project;
 
 class ProjectTest extends TestCase
 {
-    /** @test */
+    use RefreshDatabase;
     
+    /** @test */
+    public function it_has_a_path()
+    {
+        $project = Project::factory()->create();
+        $this->assertEquals('/projects/' . $project->id, $project->path());
+    }
 }

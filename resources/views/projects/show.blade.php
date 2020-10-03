@@ -7,6 +7,7 @@
     <title>{{ $project->title }}</title>
 </head>
 <body>
+    <h1>{{ $project->title }}</h1>
     {{ $project->description }}
 </body>
 </html>

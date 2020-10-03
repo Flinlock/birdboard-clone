@@ -23,7 +23,10 @@ class ProjectFactory extends Factory
     {
         return [
             'title' =>  $this->faker->sentence,
-            'description'   =>  $this->faker->paragraph
+            'description'   =>  $this->faker->paragraph,
+            'user_id'   =>  function () {
+                return \App\Models\User::factory()->create()->id;
+            }
         ];
     }
 }
