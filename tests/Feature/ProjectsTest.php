@@ -3,15 +3,14 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
-
 use App\Models\Project;
+use App\Models\User;
+use Illuminate\Foundation\Testing\WithFaker;
 
 class ProjectsTest extends TestCase
 {
     use WithFaker, RefreshDatabase;
-
 
     /** @test */
     public function a_user_can_create_a_project()
@@ -20,28 +19,42 @@ class ProjectsTest extends TestCase
 
         $this->actingAs(\App\Models\User::factory()->create());
 
-        $attributes = [
-            'title' =>  $this->faker->sentence,
-            'description'   =>  $this->faker->paragraph
+        $atts = [
+            'title' => $this->faker->sentence,
+            'description' => $this->faker->paragraph
         ];
 
-        $this->post('/projects', $attributes)->assertRedirect('/projects');
+        $this->post('/projects', $atts)->assertRedirect('/projects');
 
-        $this->assertDatabaseHas('projects', $attributes);
+        $this->assertDatabaseHas('projects', $atts);
 
-        $this->get('/projects')->assertSee($attributes['title']);
+        $this->get('/projects')->assertSee($atts['title']);
     }
 
     /** @test */
-    public function a_user_can_view_a_project()
+    public function a_user_can_view_their_project()
     {
         $this->withoutExceptionHandling();
-        
-        $project = Project::factory()->create();
+
+        $this->be(User::factory()->create());
+
+        $project = Project::factory()->create(['user_id' => auth()->id()]);
 
         $this->get($project->path())
             ->assertSee($project->title)
             ->assertSee($project->description);
+    }
+
+    /** @test */
+    public function an_authenticated_user_cannot_view_the_projects_of_others()
+    {
+        // $this->withoutExceptionHandling();
+        $this->be(User::factory()->create());
+
+        $project = Project::factory()->create();
+
+        $this->get($project->path())->assertStatus(403);
+        // TODO Left off at ~8min in episode 6
     }
 
     /** @test */
@@ -61,10 +74,27 @@ class ProjectsTest extends TestCase
     }
 
     /** @test */
-    public function only_authenticated_users_can_create_projects()
+    public function guests_cannot_create_projects()
     {
         //$this->withoutExceptionHandling();
         $attributes = \App\Models\Project::factory()->raw();
         $this->post('/projects', $attributes)->assertRedirect('login');
+    }
+
+    /** @test */
+    public function guests_cannot_view_projects()
+    {
+        //$this->withoutExceptionHandling();
+        $this->get('/projects')->assertRedirect('login');
+    }
+
+    /** @test */
+    public function guests_cannot_view_a_single_project()
+    {
+        //$this->withoutExceptionHandling();
+
+        $project = Project::factory()->create();
+
+        $this->get($project->path())->assertRedirect('login');
     }
 }
