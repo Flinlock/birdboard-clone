@@ -8,7 +8,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
 
-class ProjectsTest extends TestCase
+class ManageProjectsTest extends TestCase
 {
     use WithFaker, RefreshDatabase;
 
@@ -18,6 +18,8 @@ class ProjectsTest extends TestCase
         $this->withoutExceptionHandling();
 
         $this->actingAs(\App\Models\User::factory()->create());
+
+        $this->get('/projects/create')->assertStatus(200);
 
         $atts = [
             'title' => $this->faker->sentence,
@@ -32,9 +34,9 @@ class ProjectsTest extends TestCase
     }
 
     /** @test */
-    public function a_user_can_view_their_project()
+    public function a_user_can_view_their_projects()
     {
-        $this->withoutExceptionHandling();
+        // $this->withoutExceptionHandling();
 
         $this->be(User::factory()->create());
 
@@ -54,7 +56,6 @@ class ProjectsTest extends TestCase
         $project = Project::factory()->create();
 
         $this->get($project->path())->assertStatus(403);
-        // TODO Left off at ~8min in episode 6
     }
 
     /** @test */
@@ -74,26 +75,14 @@ class ProjectsTest extends TestCase
     }
 
     /** @test */
-    public function guests_cannot_create_projects()
-    {
-        //$this->withoutExceptionHandling();
-        $attributes = \App\Models\Project::factory()->raw();
-        $this->post('/projects', $attributes)->assertRedirect('login');
-    }
-
-    /** @test */
-    public function guests_cannot_view_projects()
+    public function guests_cannot_manage_projects()
     {
         //$this->withoutExceptionHandling();
         $this->get('/projects')->assertRedirect('login');
-    }
-
-    /** @test */
-    public function guests_cannot_view_a_single_project()
-    {
-        //$this->withoutExceptionHandling();
+        $this->get('/projects/create')->assertRedirect('login');
 
         $project = Project::factory()->create();
+        $this->post('/projects', $project->toArray())->assertRedirect('login');
 
         $this->get($project->path())->assertRedirect('login');
     }
