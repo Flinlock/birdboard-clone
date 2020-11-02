@@ -1,23 +1,20 @@
 @extends('layouts.app')
 @section('content')
-    <div >
-        <h1 class="mr-auto mb-4">Project management for scrubs!</h1>
-        <a href="/projects/create">Create Project</a>
-    </div>
+    <header class="flex items-end mb-3 py-4">
+        <div class="flex justify-between items-center w-full">
+            <h2 class="text-gray-600 text-sm font-normal">My Projects</h2>
+            <a class="button" href="/projects/create">Create Project</a>
+        </div>
+    </header>
 
-    <div class="flex">
+    <main class="lg:flex lg:flex-wrap -mx-3">
         @forelse ($projects as $project)
-            <div class="bg-white mr-4 p-5 rounded shadow w-1/3" style="height: 200px">
-                
-                <h3>{{ $project->title }}</h3>
-
-                <div>{{ \Str::limit($project->description, 300) }}</div>
-                
+            <div class="lg:w-1/3 px-3 pb-6">
+                @include('projects.card')
             </div>
         @empty
             <div>No projects yet</div>
         @endforelse
-        
-    </div>
+    </main>
 
 @endsection
