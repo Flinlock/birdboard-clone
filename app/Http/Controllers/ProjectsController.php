@@ -25,14 +25,28 @@ class ProjectsController extends Controller
         $attributes = request()->validate([
             'title' => 'required',
             'description' => 'required',
+            'notes' => 'string'
         ]);
-        auth()->user()->projects()->create($attributes);
 
-        return redirect('/projects');
+        $project = auth()->user()->projects()->create($attributes);
+
+        return redirect($project->path());
     }
 
     public function create()
     {
         return view('projects.create');
+    }
+
+    public function update(Project $project)
+    {
+        $this->authorize('update', $project);
+        // if (auth()->user()->isNot($project->user)) {
+        //     abort(403, 'You are not the project owner!');
+        // }
+
+        $project->update(request(['notes']));
+
+        return redirect($project->path());
     }
 }

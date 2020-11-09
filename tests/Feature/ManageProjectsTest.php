@@ -14,22 +14,41 @@ class ManageProjectsTest extends TestCase
     /** @test */
     public function a_user_can_create_a_project()
     {
-        $this->withoutExceptionHandling();
+        // $this->withoutExceptionHandling();
 
         $this->signIn();
 
         $this->get('/projects/create')->assertStatus(200);
 
         $atts = [
-            'title' => $this->faker->sentence,
-            'description' => $this->faker->paragraph
+            'title' => $this->faker->sentence(3),
+            'description' => $this->faker->sentence(5),
+            'notes' => 'General notes here'
         ];
+        $response = $this->post('/projects', $atts);
+        $project = Project::where($atts)->first();
 
-        $this->post('/projects', $atts)->assertRedirect('/projects');
+        $response->assertRedirect($project->path());
 
         $this->assertDatabaseHas('projects', $atts);
 
-        $this->get('/projects')->assertSee($atts['title']);
+        $this->get($project->path())
+            ->assertSee($atts['title'])
+            ->assertSee($atts['description'])
+            ->assertSee($atts['notes']);
+    }
+
+    /** @test */
+    public function a_user_can_update_a_projects_notes()
+    {
+        // $this->withoutExceptionHandling();
+        $this->signIn();
+        $project = auth()->user()->projects()->create(Project::factory()->raw());
+
+        $this->patch($project->path(), ['notes' => 'some cool notes'])
+            ->assertRedirect($project->path());
+
+        $this->assertDatabaseHas('projects', ['notes' => 'some cool notes']);
     }
 
     /** @test */
@@ -55,6 +74,17 @@ class ManageProjectsTest extends TestCase
         $project = Project::factory()->create();
 
         $this->get($project->path())->assertStatus(403);
+    }
+
+    /** @test */
+    public function an_authenticated_user_cannot_update_the_projects_of_others()
+    {
+        // $this->withoutExceptionHandling();
+        $this->signIn();
+
+        $project = Project::factory()->create();
+
+        $this->patch($project->path(), ['notes' => 'some new note'])->assertStatus(403);
     }
 
     /** @test */
